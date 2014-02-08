@@ -36,11 +36,27 @@ TodosApp.module('Todos.models', function (Todos, App, Backbone) {
 
 TodosApp.module('Todos.views', function (TodoViews, App, Backbone, Marionette, $) {
 
+	TodoViews.ModalView = Marionette.ItemView.extend({
+        template: "#template-removemodal",   
+        className:  "modal fade remove_alert",
+        events:{
+            'click .confirm':'Confirm',
+            'click .cancel':'Cancel'
+        },
+        Confirm:function(e){
+            this.model.destroy()
+            this.close();            
+
+            //TODO real! bootstrap issue, modal closes but backdrop remains open
+            $("body .modal-backdrop").remove()
+        }     
+     });
+
 	TodoViews.ItemView = Marionette.ItemView.extend({
 		tagName: 'tr',
 		template: '#template-todo-row',
 		events: {
-			'click .save': 'Save',
+			'click .save:not(.disabled)': 'Save',
 			'click .remove': 'Remove',
 			'click .done': 'ToggleDone',
 		},
@@ -48,17 +64,21 @@ TodosApp.module('Todos.views', function (TodoViews, App, Backbone, Marionette, $
 			'change': 'render'
 		},
         ToggleDone: function (e) {
-        this.model.set("done",(this.model.get("done")==1)?0:1)
+            this.model.set("done",(this.model.get("done")==1)?0:1)
+
+            //obviously has changed
+            if(this.model.hasChanged("done"))
+                this.$el.find(".save").removeClass("disabled")
         },
         Remove: function (e) {
-            this.model.destroy();
+			App.Todos.trigger('todo:remove',this.model);
         },
         Save: function (e) {
-            var target=$(e.currentTarget)
+            var target=(e)?$(e.currentTarget):this.$el.find(".save")
 //            this.model.set('updated', Date.now());
             this.model.save({},{
                                 success:function(){console.log("target",target)
-                                            target.removeClass("glyphicon-floppy-disk").addClass("glyphicon-floppy-saved")
+                                            target.removeClass("glyphicon-floppy-disk").addClass("glyphicon-floppy-saved").addClass("disabled")
                                         },
                                 error:function(){
                                             target.removeClass("glyphicon-floppy-disk").addClass("glyphicon-floppy-remove")
@@ -74,6 +94,24 @@ TodosApp.module('Todos.views', function (TodoViews, App, Backbone, Marionette, $
 		template: '#template-todo-list',
 		itemView: TodoViews.ItemView,
 		itemViewContainer: 'tbody',
+		events: {
+	        'click .toggle_all': 'ToggleAll',
+	        'click .save_all': 'SaveAll',
+        },
+        SaveAll: function (e) {
+
+            this.children.each(function(view){
+                if(view.$el.is(":visible") && view.model.hasChanged("done"))
+                    view.Save()
+            });
+        },
+        ToggleAll: function (e) {
+
+            this.children.each(function(view){
+                if(view.$el.is(":visible"))
+                    view.ToggleDone()
+            });
+        }
 
 	});
 
@@ -151,8 +189,11 @@ TodosApp.module('Todos', function (Todos, App, Backbone, Marionette, $, _) {
 			this.todoList.fetch();
             var este=this
             Todos.on("todo:add", function(){
-                este.showForm();
-            });
+                    este.showForm();
+                });
+            Todos.on("todo:remove", function(model){
+                    este.RemoveModal(model);
+                });
 
 		},
 
@@ -162,6 +203,11 @@ TodosApp.module('Todos', function (Todos, App, Backbone, Marionette, $, _) {
 			});
 			App.header.show(header);
 		},
+        RemoveModal: function (model) {
+            var modal_view= new Todos.views.ModalView({model:model})
+            App.modal.show(modal_view);
+            modal_view.$el.modal("show")
+        },
         Edit: function (id) {
             if(this.todoList.get(id)){
 			    var form_v = new App.Layout.Formu({
@@ -169,7 +215,6 @@ TodosApp.module('Todos', function (Todos, App, Backbone, Marionette, $, _) {
 			    });
 			    App.aux_form.show(form_v);
             }
-
         },
         showForm: function (todomodel) {
             var aux_ent=new App.Todos.models.TodoInst({inc_id:this.todoList.length+1})
@@ -181,7 +226,7 @@ TodosApp.module('Todos', function (Todos, App, Backbone, Marionette, $, _) {
 			App.aux_form.show(form_);
 		},
 
-		showTodoList: function (todoList) {console.log("Todos list",todoList)
+		showTodoList: function (todoList) {
 			App.main.show(new Todos.views.ListView({
 				collection: todoList
 			}));

@@ -7,6 +7,11 @@ a .glyphicon{
     color:#333;
 }
 
+.disabled{
+    color:grey;
+    cursor:default;
+}
+
 
 
 
