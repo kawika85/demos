@@ -62,13 +62,13 @@
               <div class="form-group">
                     <label for="title" class="col-sm-2 control-label">Title</label>
                     <div class="col-sm-10">
-                      <input type="text" name="title" aria-required="true"  aria-describedby="name-format" class="form-control title" placeholder="Title" value="<%= title %>" required >
+                      <input type="text" name="title" aria-required="true"  aria-describedby="name-format" class="form-control title" placeholder="Title" value="<%= title %>"  >
                     </div>
               </div>              
               <div class="form-group">
                     <label for="description" class="col-sm-2 control-label">Description</label>
                     <div class="col-sm-10">
-                      <textarea class="form-control desc" rows="3" ><%= description %></textarea>
+                      <textarea class="form-control desc" rows="3" name="description" ><%= description %></textarea>
                     </div>
               </div>    
               <div class="form-group">
@@ -101,7 +101,10 @@
                 <tfoot>
                     <td colspan="4"></td>
                     <td ><span class="glyphicon glyphicon-unchecked toggle_all"  data-toggle="tooltip" data-placement="right" title="Toggle All" ></span></td>
-                    <td ><span class="glyphicon glyphicon-floppy-disk save_all"  data-toggle="tooltip" data-placement="right" title="Save All" ></span></td>
+                    <td >
+                        <span class="glyphicon glyphicon-remove remove_all"  data-toggle="tooltip" data-placement="right" title="Remove All" ></span>
+                        <span class="glyphicon glyphicon-floppy-disk save_all"  data-toggle="tooltip" data-placement="right" title="Save All" ></span>
+                    </td>
                 </tfoot>
             </table>  
 		</script>
@@ -113,20 +116,19 @@
                   <td><%= date_ %></td>
                   <td><% if(done==0){ %><span class="glyphicon glyphicon-unchecked done"></span><% }else{ %><span class="glyphicon glyphicon-check done"></span><% } %></td>
                   <td>
-                    <a href="#edit/<%= id %>"><span class="glyphicon glyphicon-pencil edit" data-toggle="tooltip" data-placement="top" title="Edit" ></span></a>
                     <span class="glyphicon glyphicon-remove remove" data-toggle="tooltip" data-placement="top" title="Remove" ></span>
                     <span class="glyphicon glyphicon-floppy-disk save disabled" data-toggle="tooltip" data-placement="top" title="Save"></span>
+                    <a href="#edit/<%= id %>"><span class="glyphicon glyphicon-pencil edit" data-toggle="tooltip" data-placement="top" title="Edit" ></span></a>
                   </td>
 
 		</script>
    		<script type="text/html" id="template-removemodal" >
-                  <% var date_=new Date(created) %>
+                  
                   <div class="modal-dialog">
                     <div class="modal-content">
                       <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title">Remove <strong><%= title%></strong> ?</h4>
-                        <small>created: <%= date_ %></small>
+                        <h4 class="modal-title">Remove <strong><%= modal_title%></strong> ?</h4>
                       </div>
                       <div class="modal-body">
                         <p>Removing can't be undone. Are you sure?</p>
@@ -156,7 +158,11 @@
 		<script>
 			$(function () {
 				TodosApp.start();
-                $('span[data-toggle=tooltip]').tooltip();
+
+                $('body').tooltip({
+                    selector: '[data-toggle=tooltip]'
+                });
+
 			});
 		</script>
     </body>

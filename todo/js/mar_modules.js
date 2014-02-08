@@ -14,6 +14,16 @@ TodosApp.module('Todos.models', function (Todos, App, Backbone) {
 			        done:0,
 			        created:null
                 },
+                validate: function (attrs) {
+
+                    var invalid_=[]
+                    if (!attrs.title || attrs.title.length==0) 
+                        invalid_.push({"attr":"title","message":"Please insert a Title"})
+                    if (!attrs.description ||  attrs.description.length==0) 
+                        invalid_.push({"attr":"description","message":"Please insert a Description"})
+
+                    if (invalid_.length>0) return invalid_;
+                },
 		        initialize: function () {
 			        if (this.isNew()) {
 				        this.set('created', Date.now());
@@ -43,12 +53,28 @@ TodosApp.module('Todos.views', function (TodoViews, App, Backbone, Marionette, $
             'click .confirm':'Confirm',
             'click .cancel':'Cancel'
         },
+        render:function (eventName) {
+            //rewrite render. use the same view for render collection or model popup
+            //will be solved when "recursive todos" are implemented (todo tree with parents)
+            var title_=(this.model.models)?"the entire collection":this.model.get("title")
+            var template_ = _.template($(this.template).html(), {modal_title: title_});
+            $(this.el).html(template_);
+            return this;
+        },
         Confirm:function(e){
-            this.model.destroy()
+
+            //TODO if its a collection, remove according filter
+            //TODO after reset should perform sync, or extend reset to do destroy() on all childs 
+            if(this.model.models)
+                this.model.reset()
+            else
+                this.model.destroy()
+
             this.close();            
 
-            //TODO real! bootstrap issue, modal closes but backdrop remains open
+            //TODO real! bootstrap issue, modal closes but backdrop remains open. It's because outside the view .el
             $("body .modal-backdrop").remove()
+            e.preventDefault();
         }     
      });
 
@@ -75,7 +101,6 @@ TodosApp.module('Todos.views', function (TodoViews, App, Backbone, Marionette, $
         },
         Save: function (e) {
             var target=(e)?$(e.currentTarget):this.$el.find(".save")
-//            this.model.set('updated', Date.now());
             this.model.save({},{
                                 success:function(){console.log("target",target)
                                             target.removeClass("glyphicon-floppy-disk").addClass("glyphicon-floppy-saved").addClass("disabled")
@@ -97,7 +122,11 @@ TodosApp.module('Todos.views', function (TodoViews, App, Backbone, Marionette, $
 		events: {
 	        'click .toggle_all': 'ToggleAll',
 	        'click .save_all': 'SaveAll',
+	        'click .remove_all': 'DeleteAll',
         },
+        DeleteAll: function (e) {
+			App.Todos.trigger('todo:remove',this.collection);
+        },        
         SaveAll: function (e) {
 
             this.children.each(function(view){
@@ -146,14 +175,31 @@ TodosApp.module('Layout', function (Layout, App, Backbone) {
             this.model.set("description",this.$el.find(".desc").val())
             this.model.set("done",done_)
 
-            if(!this.model.get("id")){
-                this.model.set("inc_id",this.collection.length+1)
-                this.collection.create(this.model)
+            this.$el.find("input,textarea").tooltip('destroy')
+            if(this.model.isValid())
+            {
+                if(!this.model.get("id")){
+                    this.model.set("inc_id",this.collection.length+1)
+                    this.collection.create(this.model)
+                }else
+                    this.model.save()
+
+                this.$el.slideUp("fast",function(){este.close();})                
             }else
-                this.model.save()
-            
+            {
+                _.each(this.model.validate(this.model.attributes),
+                                            function(validate_rule){
+
+                                                este.$el.find("[name='"+validate_rule["attr"]+"']").tooltip({
+                                                    placement:"right",
+                                                    title:validate_rule["message"]
+                                                }).tooltip('show')
+
+                                            });
+
+            }
             e.preventDefault();
-            this.$el.slideUp("fast",function(){este.close();})
+
 
         }
 	})
@@ -214,6 +260,10 @@ TodosApp.module('Todos', function (Todos, App, Backbone, Marionette, $, _) {
 				    model: this.todoList.get(id)
 			    });
 			    App.aux_form.show(form_v);
+
+                //not normal, bug?
+                App.aux_form.$el.show()
+
             }
         },
         showForm: function (todomodel) {
