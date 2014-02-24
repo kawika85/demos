@@ -45,6 +45,7 @@
 
 
    		<script type="text/html" id="template-todo-header" >
+      <hr>
             <button type="button" class="btn btn-default add_todo">Add</button>
             <div class="pull-right">
                 <span>Show:&nbsp;</span>
@@ -58,7 +59,7 @@
           <hr>
 		</script>
    		<script type="text/html" id="template-todo-form" >
-            <form class="form-horizontal" role="form">
+            <form class="form-horizontal col-sm-6" role="form">
               <div class="form-group">
                     <label for="title" class="col-sm-2 control-label">Title</label>
                     <div class="col-sm-10">
@@ -82,44 +83,52 @@
 
               </div>
             </form>
+
+            <div class="tasks-form col-sm-6"></div>
       <hr>
         </script>
    		<script type="text/html" id="template-todo-list" >
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>title</th>
-                      <th>desc</th>
-                      <th>created</th>
-                      <th>done?</th>
-                      <th>&nbsp;</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-                <tfoot>
-                    <td colspan="4"></td>
-                    <td ><span class="glyphicon glyphicon-unchecked toggle_all"  data-toggle="tooltip" data-placement="right" title="Toggle All" ></span></td>
-                    <td >
+            <div class="list-cont"></div>
+            <div class="row">
+                    <div class="col-xs-7"></div>
+                    <div class="col-xs-1" ><span class="glyphicon glyphicon-unchecked toggle_all"  data-toggle="tooltip" data-placement="right" title="Toggle All" ></span></div>
+                    <div class="col-xs-3 " >
                         <span class="glyphicon glyphicon-remove remove_all"  data-toggle="tooltip" data-placement="right" title="Remove All" ></span>
                         <span class="glyphicon glyphicon-floppy-disk save_all"  data-toggle="tooltip" data-placement="right" title="Save All" ></span>
-                    </td>
-                </tfoot>
-            </table>  
+                    </div>
+            </div>
+           
 		</script>
    		<script type="text/html" id="template-todo-row" >
                   <% var date_=new Date(created) %>
-                  <td data-done="<%= (done)?done:0 %>" ><%= inc_id %></td>
-                  <td><%= title %></td>
-                  <td><%= description %></td>
-                  <td><%= date_ %></td>
-                  <td><% if(done==0){ %><span class="glyphicon glyphicon-unchecked done"></span><% }else{ %><span class="glyphicon glyphicon-check done"></span><% } %></td>
-                  <td>
+                  <div class="col-xs-1" data-done="<%= (done)?done:0 %>" ><%= inc_id %></div>
+                  <div class="col-xs-1"><%= title %></div>
+                  <div class="col-xs-3"><%=description %></div>
+                  <div class="col-xs-2"><%= date_ %></div>
+                  <div class="col-xs-1"><% if(done==0){ %><span class="glyphicon glyphicon-unchecked done"></span><% }else{ %><span class="glyphicon glyphicon-check done"></span><% } %></div>
+                  <div class="col-xs-3">
                     <span class="glyphicon glyphicon-remove remove" data-toggle="tooltip" data-placement="top" title="Remove" ></span>
                     <span class="glyphicon glyphicon-floppy-disk save disabled" data-toggle="tooltip" data-placement="top" title="Save"></span>
                     <a href="#edit/<%= id %>"><span class="glyphicon glyphicon-pencil edit" data-toggle="tooltip" data-placement="top" title="Edit" ></span></a>
-                  </td>
+                    <span class="glyphicon glyphicon-chevron-down show-tasks" data-toggle="tooltip" data-placement="top" title="Show Tasks" >
+
+                  </div>
+
+		</script>
+   		<script type="text/html" id="template-task-list" >
+            <h4>Tasks Summary</h4>            
+            <div class="task-cont"></div>
+            <button type="button" class="btn btn-default add_task">Add</button>
+
+           
+		</script>
+   		<script type="text/html" id="template-task-row" >
+                  <div class="col-xs-8 editable disabled"><input type="text" value="<%= description %>" /><span><%= description %></span></div>
+                  <div class="col-xs-3">
+                    <% if(done==0){ %><span class="glyphicon glyphicon-unchecked task-done"></span><% }else{ %><span class="glyphicon glyphicon-check task-done"></span><% } %>
+                    <span class="glyphicon glyphicon-pencil edit" data-toggle="tooltip" data-placement="top" title="Edit" ></span>                  
+                    <span class="glyphicon glyphicon-remove remove" data-toggle="tooltip" data-placement="top" title="Remove" ></span>  
+                  </div>
 
 		</script>
    		<script type="text/html" id="template-removemodal" >
@@ -139,6 +148,9 @@
                       </div>
                     </div><!-- /.modal-content -->
                   </div><!-- /.modal-dialog -->
+        </script>
+   		<script type="text/html" id="template-noitems" >
+            <span>Insert some items</span>
         </script>
 </body>
 </html>
